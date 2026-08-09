@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { Brain, ChevronRight, Gamepad2, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { clearPlayerProfile, loadPlayerProfile, PlayerProfile, savePlayerProfile } from "@/lib/profile";
+
+type PlayerProfile = {
+  username: string;
+};
 
 const games = [
   {
@@ -32,22 +35,15 @@ export default function Home() {
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [username, setUsername] = useState("");
 
-  useEffect(() => {
-    setProfile(loadPlayerProfile());
-  }, []);
-
   function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmedName = username.trim();
     if (!trimmedName) return;
 
-    const nextProfile = { username: trimmedName };
-    savePlayerProfile(nextProfile);
-    setProfile(nextProfile);
+    setProfile({ username: trimmedName });
   }
 
   function logout() {
-    clearPlayerProfile();
     setProfile(null);
     setUsername("");
   }
@@ -99,7 +95,7 @@ export default function Home() {
             const Icon = game.icon;
 
             return (
-              <Link key={game.href} className="group block" href={game.href}>
+              <Link key={game.href} className="group block" href={`${game.href}?username=${encodeURIComponent(profile.username)}`}>
                 <Card className="h-full overflow-hidden border-primary/15 bg-slate-950/70 transition duration-200 group-hover:-translate-y-1 group-hover:border-primary/45 group-hover:shadow-2xl">
                   <div className={`h-28 bg-gradient-to-br ${game.accent} p-5`}>
                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-background/70 ring-1 ring-white/10">

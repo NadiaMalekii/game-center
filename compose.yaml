@@ -6,7 +6,7 @@ services:
     image: game-center:local
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://game_center:game_center@db:5432/game_center
+      DATABASE_URL: postgres://game_center:game%40center%23123@db:5432/game_center
     ports:
       - "8094:3000"
     depends_on:

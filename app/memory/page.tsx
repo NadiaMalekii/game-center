@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, RotateCcw, Trophy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { loadLocalScores, saveLocalScore } from "@/lib/local-scores";
-import { loadPlayerProfile, PlayerProfile } from "@/lib/profile";
+
+type PlayerProfile = {
+  username: string;
+};
 
 type MemoryCard = {
   id: string;
@@ -46,10 +49,6 @@ function createDeck(): MemoryCard[] {
   );
 }
 
-function calculateMemoryScore(moves: number, seconds: number) {
-  return Math.max(0, 10000 - moves * 100 - seconds * 10);
-}
-
 type MemoryScoresResponse = {
   playerBest: MemoryScore | null;
   scores: MemoryScore[];
@@ -76,6 +75,16 @@ async function saveScore(username: string, moves: number, seconds: number): Prom
 }
 
 export default function MemoryPage() {
+  return (
+    <Suspense fallback={null}>
+      <MemoryGame />
+    </Suspense>
+  );
+}
+
+function MemoryGame() {
+  const searchParams = useSearchParams();
+  const username = searchParams.get("username")?.trim() ?? "";
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [cards, setCards] = useState<MemoryCard[]>(() => createDeck());
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -93,22 +102,18 @@ export default function MemoryPage() {
   const isComplete = matchedCount === cards.length;
 
   useEffect(() => {
-    const playerProfile = loadPlayerProfile();
-    if (!playerProfile) return;
+    if (!username) return;
 
-    setProfile(playerProfile);
-    const localScores = loadLocalScores(GAME) as MemoryScore[];
-    setScores(localScores);
-    setPlayerBestScore(localScores.find((score) => score.username === playerProfile.username) ?? null);
+    setProfile({ username });
 
-    loadScores(playerProfile.username)
+    loadScores(username)
       .then((data) => {
         setScores(data.scores);
         setPlayerBestScore(data.playerBest);
         setScoreError("");
       })
-      .catch(() => setScoreError(""));
-  }, []);
+      .catch(() => setScoreError("Could not load memory scores. Check the PostgreSQL connection."));
+  }, [username]);
 
   useEffect(() => {
     if (!hasStarted || isComplete) return;
@@ -124,17 +129,6 @@ export default function MemoryPage() {
     if (!isComplete || !hasStarted || !profile || savedWinRef.current) return;
 
     savedWinRef.current = true;
-    const localScore = {
-      username: profile.username,
-      score: calculateMemoryScore(moves, seconds),
-      moves,
-      seconds,
-      playedAt: new Date().toISOString(),
-    };
-    const localScores = saveLocalScore(GAME, localScore) as MemoryScore[];
-    setScores(localScores);
-    setPlayerBestScore(localScores.find((score) => score.username === profile.username) ?? localScore);
-
     saveScore(profile.username, moves, seconds)
       .then(() => loadScores(profile.username))
       .then((data) => {
@@ -142,7 +136,7 @@ export default function MemoryPage() {
         setPlayerBestScore(data.playerBest);
         setScoreError("");
       })
-      .catch(() => setScoreError(""));
+      .catch(() => setScoreError("Could not save memory score. Check the PostgreSQL connection."));
   }, [hasStarted, isComplete, moves, profile, seconds]);
 
   useEffect(() => {

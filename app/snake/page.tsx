@@ -1,27 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { KeyboardEvent as ReactKeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { KeyboardEvent as ReactKeyboardEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Trophy, UserRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { loadLocalScores, LocalGameScore, saveLocalScore } from "@/lib/local-scores";
-import { loadPlayerProfile } from "@/lib/profile";
 
 type Point = { x: number; y: number };
 type Direction = "up" | "down" | "left" | "right";
 type ScoreEntry = { score: number; dots: number; playedAt: string };
 type Profile = { username: string; bestScore: number; totalPoints: number; gamesPlayed: number; scores: ScoreEntry[] };
+type SnakeScore = { username: string; score: number; dots: number; playedAt: string };
 type SnakeScoresResponse = {
-  playerBest: LocalGameScore | null;
-  scores: LocalGameScore[];
+  playerBest: SnakeScore | null;
+  playerStats: Pick<Profile, "bestScore" | "totalPoints" | "gamesPlayed">;
+  recentScores: ScoreEntry[];
+  scores: SnakeScore[];
 };
 
 const BOARD_SIZE = 18;
-const GAME = "snake";
 const POINTS_PER_DOT = 10;
-const STORAGE_KEY = "snake-game-profiles";
 const START_SNAKE: Point[] = [
   { x: 8, y: 9 },
   { x: 7, y: 9 },
@@ -62,19 +62,6 @@ function createDot(snake: Point[]) {
   return openCells[Math.floor(Math.random() * openCells.length)] ?? START_DOT;
 }
 
-function loadSnakeProfile(username: string): Profile {
-  const saved = window.localStorage.getItem(STORAGE_KEY);
-  const profiles = saved ? (JSON.parse(saved) as Record<string, Profile>) : {};
-  return profiles[username] ?? { username, bestScore: 0, totalPoints: 0, gamesPlayed: 0, scores: [] };
-}
-
-function saveSnakeProfile(profile: Profile) {
-  const saved = window.localStorage.getItem(STORAGE_KEY);
-  const profiles = saved ? (JSON.parse(saved) as Record<string, Profile>) : {};
-  profiles[profile.username] = { ...profile, scores: profile.scores.slice(0, 20) };
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
-}
-
 async function loadSnakeScores(username: string): Promise<SnakeScoresResponse> {
   const response = await fetch(`/api/snake-scores?username=${encodeURIComponent(username)}`);
   if (!response.ok) throw new Error("Could not load Snake scores.");
@@ -93,6 +80,16 @@ async function saveSnakeScore(username: string, score: number, dots: number) {
 }
 
 export default function SnakePage() {
+  return (
+    <Suspense fallback={null}>
+      <SnakeGame />
+    </Suspense>
+  );
+}
+
+function SnakeGame() {
+  const searchParams = useSearchParams();
+  const username = searchParams.get("username")?.trim() ?? "";
   const [profile, setProfile] = useState<Profile | null>(null);
   const [snake, setSnake] = useState<Point[]>(START_SNAKE);
   const [dot, setDot] = useState<Point>(START_DOT);
@@ -101,28 +98,25 @@ export default function SnakePage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [dots, setDots] = useState(0);
-  const [topScores, setTopScores] = useState<LocalGameScore[]>([]);
+  const [topScores, setTopScores] = useState<SnakeScore[]>([]);
+  const [scoreError, setScoreError] = useState("");
   const savedFinalScoreRef = useRef(false);
 
   const score = dots * POINTS_PER_DOT;
   const recentScores = useMemo(() => profile?.scores.slice(0, 5) ?? [], [profile]);
 
   useEffect(() => {
-    const playerProfile = loadPlayerProfile();
-    setTopScores(loadLocalScores(GAME));
-    if (!playerProfile) return;
+    if (!username) return;
 
-    setProfile(loadSnakeProfile(playerProfile.username));
-    loadSnakeScores(playerProfile.username)
-      .then((data) => setTopScores(data.scores))
-      .catch(() => undefined);
-  }, []);
-
-  useEffect(() => {
-    if (profile) {
-      saveSnakeProfile(profile);
-    }
-  }, [profile]);
+    setProfile({ username, bestScore: 0, totalPoints: 0, gamesPlayed: 0, scores: [] });
+    loadSnakeScores(username)
+      .then((data) => {
+        setTopScores(data.scores);
+        setProfile({ username, ...data.playerStats, scores: data.recentScores });
+        setScoreError("");
+      })
+      .catch(() => setScoreError("Could not load Snake scores. Check the PostgreSQL connection."));
+  }, [username]);
 
   useEffect(() => {
     if (!isPlaying || isGameOver) return;
@@ -166,19 +160,14 @@ export default function SnakePage() {
     if (!isGameOver || !profile || savedFinalScoreRef.current) return;
 
     savedFinalScoreRef.current = true;
-    const playedAt = new Date().toISOString();
-    setTopScores(saveLocalScore(GAME, { username: profile.username, score, dots, playedAt }));
     saveSnakeScore(profile.username, score, dots)
       .then(() => loadSnakeScores(profile.username))
-      .then((data) => setTopScores(data.scores))
-      .catch(() => undefined);
-    setProfile({
-      ...profile,
-      bestScore: Math.max(profile.bestScore, score),
-      totalPoints: profile.totalPoints + score,
-      gamesPlayed: profile.gamesPlayed + 1,
-      scores: [{ score, dots, playedAt }, ...profile.scores].slice(0, 20),
-    });
+      .then((data) => {
+        setTopScores(data.scores);
+        setProfile({ username: profile.username, ...data.playerStats, scores: data.recentScores });
+        setScoreError("");
+      })
+      .catch(() => setScoreError("Could not save Snake score. Check the PostgreSQL connection."));
   }, [dots, isGameOver, profile, score]);
 
   useEffect(() => {
@@ -343,7 +332,7 @@ export default function SnakePage() {
         <Card className="bg-card/80 backdrop-blur">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><UserRound className="h-5 w-5" /> Profile</CardTitle>
-            <CardDescription>Your saved Snake progress</CardDescription>
+            <CardDescription>Your PostgreSQL Snake progress</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
             <Stat label="Best score" value={profile.bestScore} />
@@ -355,7 +344,7 @@ export default function SnakePage() {
         <Card className="bg-card/80 backdrop-blur">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Trophy className="h-5 w-5" /> Recent Scores</CardTitle>
-            <CardDescription>Scores are saved after each game over.</CardDescription>
+            <CardDescription>Scores are saved to PostgreSQL after each game over.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentScores.length ? (
@@ -380,6 +369,7 @@ export default function SnakePage() {
             <CardDescription>Ranked by highest Snake score.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
+            {scoreError ? <p className="text-sm text-destructive">{scoreError}</p> : null}
             {topScores.length ? (
               topScores.map((entry, index) => (
                 <div className="flex items-center justify-between rounded-lg bg-secondary p-3" key={`${entry.username}-${entry.playedAt}`}>

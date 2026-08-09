@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     await ensureScoresTable();
     const username = request.nextUrl.searchParams.get("username")?.trim().slice(0, MAX_USERNAME_LENGTH) ?? "";
 
-    const [leaderboardResult, playerBestResult] = await Promise.all([
+    const [leaderboardResult, playerBestResult, playerStatsResult, recentScoresResult] = await Promise.all([
       getPool().query(
         `
           SELECT DISTINCT ON (username)
@@ -65,11 +65,38 @@ export async function GET(request: NextRequest) {
             [GAME, username],
           )
         : Promise.resolve({ rows: [] }),
+      username
+        ? getPool().query(
+            `
+              SELECT
+                COALESCE(MAX(score), 0)::int AS "bestScore",
+                COALESCE(SUM(score), 0)::int AS "totalPoints",
+                COUNT(*)::int AS "gamesPlayed"
+              FROM game_scores
+              WHERE game = $1 AND username = $2
+            `,
+            [GAME, username],
+          )
+        : Promise.resolve({ rows: [] }),
+      username
+        ? getPool().query(
+            `
+              SELECT score, dots, played_at AS "playedAt"
+              FROM game_scores
+              WHERE game = $1 AND username = $2
+              ORDER BY played_at DESC
+              LIMIT 5
+            `,
+            [GAME, username],
+          )
+        : Promise.resolve({ rows: [] }),
     ]);
 
     return NextResponse.json({
       playerBest: playerBestResult.rows[0] ?? null,
-      scores: leaderboardResult.rows.sort((a, b) => b.score - a.score || b.dots - a.dots).slice(0, 10),
+      playerStats: playerStatsResult.rows[0] ?? { bestScore: 0, totalPoints: 0, gamesPlayed: 0 },
+      recentScores: recentScoresResult.rows,
+      scores: leaderboardResult.rows.sort((a, b) => b.score - a.score || (b.dots ?? 0) - (a.dots ?? 0)).slice(0, 10),
     });
   } catch (error) {
     console.error(error);
