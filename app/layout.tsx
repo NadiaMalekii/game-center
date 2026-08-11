@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Game Center",
-  description: "Play Snake and Memory Match in a mobile-first browser game center.",
+  description: "Play Snake, Memory Match, Hangman, and Sokoban in a mobile-first browser game center.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
