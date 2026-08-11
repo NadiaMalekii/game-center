@@ -177,7 +177,7 @@ export default function HangmanGame() {
       <section className="flex flex-col gap-4 lg:gap-6">
         <div className="rounded-2xl border bg-card/70 p-4 shadow-2xl backdrop-blur sm:rounded-3xl sm:p-5">
           <Button asChild className="mb-3 -ml-2" size="sm" variant="ghost">
-            <Link href="/"><ArrowLeft className="h-4 w-4" /> Games</Link>
+            <Link href={`/?username=${encodeURIComponent(username)}`}><ArrowLeft className="h-4 w-4" /> Games</Link>
           </Button>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
