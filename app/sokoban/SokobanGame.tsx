@@ -370,7 +370,7 @@ export default function SokobanGame() {
         <Card className="w-full max-w-md border-primary/20 bg-card/90 backdrop-blur">
           <CardHeader>
             <Button asChild className="mb-3 w-fit" size="sm" variant="ghost">
-              <Link href="/"><ArrowLeft className="h-4 w-4" /> Games</Link>
+              <Link href={`/?username=${encodeURIComponent(username)}`}><ArrowLeft className="h-4 w-4" /> Games</Link>
             </Button>
             <CardTitle className="text-3xl">{loadStatus === "loading" ? "Loading Sokoban" : "Could not load Sokoban"}</CardTitle>
             <CardDescription>{loadStatus === "loading" ? "Fetching levels and your PostgreSQL progress." : error}</CardDescription>
@@ -392,7 +392,7 @@ export default function SokobanGame() {
           <>
             <div className="rounded-2xl border bg-card/70 p-4 shadow-2xl backdrop-blur sm:rounded-3xl sm:p-5">
               <Button asChild className="mb-3 -ml-2" size="sm" variant="ghost">
-                <Link href="/"><ArrowLeft className="h-4 w-4" /> Games</Link>
+                <Link href={`/?username=${encodeURIComponent(username)}`}><ArrowLeft className="h-4 w-4" /> Games</Link>
               </Button>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
