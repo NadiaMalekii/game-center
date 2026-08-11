@@ -254,7 +254,7 @@ function SnakeGame() {
         <div className="flex flex-col gap-3 rounded-2xl border bg-card/70 p-4 shadow-2xl backdrop-blur sm:rounded-3xl sm:p-5 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
             <Button asChild className="mb-2 -ml-2" size="sm" variant="ghost">
-              <Link href="/"><ArrowLeft className="h-4 w-4" /> Games</Link>
+              <Link href={`/?username=${encodeURIComponent(profile.username)}`}><ArrowLeft className="h-4 w-4" /> Games</Link>
             </Button>
             <p className="text-sm text-muted-foreground">Welcome back</p>
             <h1 className="truncate text-2xl font-bold tracking-tight sm:text-3xl">{profile.username}</h1>
@@ -266,7 +266,7 @@ function SnakeGame() {
             <Button className="w-full sm:w-auto" variant="secondary" onClick={() => setIsPlaying((playing) => !playing)} disabled={isGameOver}>
               {isPlaying ? "Pause" : "Resume"}
             </Button>
-            <Button asChild className="w-full sm:w-auto" variant="outline"><Link href="/">Games</Link></Button>
+            <Button asChild className="w-full sm:w-auto" variant="outline"><Link href={`/?username=${encodeURIComponent(profile.username)}`}>Games</Link></Button>
           </div>
         </div>
 
