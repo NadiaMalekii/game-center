@@ -547,9 +547,9 @@
 
   رفتار:
 
-  - اگر `DATABASE_URL` وجود نداشته باشد، خطا می‌دهد.
+  - اگر `DATABASE_URL` یا مجموعه کامل متغیرهای `POSTGRES_*` وجود نداشته باشد، خطا می‌دهد.
   - اگر Pool قبلا ساخته شده باشد، همان Pool را برمی‌گرداند.
-  - اگر Pool وجود نداشته باشد، یک Pool جدید با connection string می‌سازد.
+  - اگر `DATABASE_URL` وجود داشته باشد، Pool با connection string ساخته می‌شود؛ در غیر این صورت از host، port، database، user و password جداگانه استفاده می‌شود.
 
   علت استفاده از `globalThis`:
 
@@ -839,7 +839,11 @@
   - environment:
 
   ```txt
-  DATABASE_URL=postgres://postgres:YOUR_URL_ENCODED_PASSWORD@10.0.0.4:5432/game_center
+  POSTGRES_HOST=10.0.0.4
+  POSTGRES_PORT=5432
+  POSTGRES_DB=game_center
+  POSTGRES_USER=postgres
+  POSTGRES_PASSWORD=YOUR_PASSWORD
   ```
 
   - پورت:
@@ -864,10 +868,10 @@
   - پورت:
 
   ```txt
-  5433:5432
+  5432:5432
   ```
 
-  یعنی pgAdmin باید به `localhost:5433` وصل شود.
+  یعنی pgAdmin باید به `localhost:5432` وصل شود.
 
   ## .env.example
 
@@ -875,12 +879,16 @@
 
   ```txt
   PRIVATE_IP=10.0.0.4
-  DATABASE_URL=postgres://postgres:YOUR_URL_ENCODED_PASSWORD@10.0.0.4:5432/game_center
+  POSTGRES_HOST=10.0.0.4
+  POSTGRES_PORT=5432
+  POSTGRES_DB=game_center
+  POSTGRES_USER=postgres
+  POSTGRES_PASSWORD=YOUR_PASSWORD
   ```
 
   نکته عملی:
 
-  مقدار واقعی `DATABASE_URL` و `POSTGRES_PASSWORD` در فایل `.env` نگه‌داری می‌شود و در git commit نمی‌شود.
+  مقدار واقعی متغیرها در فایل `.env` نگه‌داری می‌شود و در git commit نمی‌شود. در GitHub Actions همین نام‌ها به عنوان Secrets تنظیم می‌شوند.
 
   ## .dockerignore
 
@@ -943,7 +951,7 @@
 
   نکته مهم:
 
-  نسخه deploy فعلی در workflow فقط سرویس `app` را می‌نویسد و سرویس `db` را داخل compose تولیدشده روی VPS تعریف نمی‌کند. اگر production هم نیاز به PostgreSQL داخلی Docker داشته باشد، workflow باید با سرویس db و `DATABASE_URL` کامل‌تر شود.
+  workflow فقط سرویس `app` را روی VPS می‌نویسد و اتصال PostgreSQL را از Secrets با نام‌های `POSTGRES_HOST`، `POSTGRES_PORT`، `POSTGRES_USER` و `POSTGRES_PASSWORD` در فایل `.env` قرار می‌دهد. سرویس `db` داخل compose تولیدشده روی VPS تعریف نمی‌شود.
 
   ## public/.gitkeep
 
@@ -1088,11 +1096,11 @@
 
   ## نکات فنی و ریسک‌ها
 
-  - `DATABASE_URL` برای APIهای دیتابیس الزامی است. اگر وجود نداشته باشد، خواندن و ذخیره امتیازها خطا می‌دهد.
+  - برای APIهای دیتابیس باید `DATABASE_URL` یا متغیرهای `POSTGRES_HOST`، `POSTGRES_PORT`، `POSTGRES_DB`، `POSTGRES_USER` و `POSTGRES_PASSWORD` تنظیم شود.
   - ذخیره‌سازی LocalStorage حذف شده است؛ leaderboard و تاریخچه امتیازها به PostgreSQL وابسته‌اند.
   - جدول `game_scores` برای هر دو بازی مشترک است؛ نوع بازی با ستون `game` تفکیک می‌شود.
-  - workflow تولیدی GitHub Actions در وضعیت فعلی دیتابیس را روی VPS تعریف نمی‌کند و برای production کامل باید بررسی شود.
-  - `.env.example` پورت `5432` را نشان می‌دهد، ولی compose فعلی برای دسترسی از میزبان از `5433` استفاده می‌کند.
+  - workflow تولیدی GitHub Actions دیتابیس را روی VPS تعریف نمی‌کند و به یک PostgreSQL در `10.0.0.4:5432` متصل می‌شود.
+  - `.env` و GitHub Secrets نباید commit یا در logهای workflow چاپ شوند.
 
   ## جمع‌بندی
 
