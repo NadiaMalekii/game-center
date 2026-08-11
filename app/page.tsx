@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useState } from "react";
 import { Box, Brain, ChevronRight, Gamepad2, Keyboard, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,18 +49,33 @@ const games = [
 ];
 
 export default function Home() {
-  const [profile, setProfile] = useState<PlayerProfile | null>(null);
-  const [username, setUsername] = useState("");
+  return (
+    <Suspense fallback={null}>
+      <GameCenterHome />
+    </Suspense>
+  );
+}
+
+function GameCenterHome() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const usernameFromUrl = searchParams.get("username")?.trim() ?? "";
+  const [profile, setProfile] = useState<PlayerProfile | null>(() =>
+    usernameFromUrl ? { username: usernameFromUrl } : null,
+  );
+  const [username, setUsername] = useState(usernameFromUrl);
 
   function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmedName = username.trim();
     if (!trimmedName) return;
 
+    router.replace(`/?username=${encodeURIComponent(trimmedName)}`);
     setProfile({ username: trimmedName });
   }
 
   function logout() {
+    router.replace("/");
     setProfile(null);
     setUsername("");
   }
