@@ -664,13 +664,13 @@
   نام کاربر:
 
   ```txt
-  game_center
+  postgres
   ```
 
   رمز عبور:
 
   ```txt
-  game_center
+  مقدار `POSTGRES_PASSWORD` در فایل `.env`
   ```
 
   نام جدول اصلی:
@@ -839,7 +839,7 @@
   - environment:
 
   ```txt
-  DATABASE_URL=postgres://game_center:game_center@db:5432/game_center
+  DATABASE_URL=postgres://postgres:YOUR_URL_ENCODED_PASSWORD@10.0.0.4:5432/game_center
   ```
 
   - پورت:
@@ -858,8 +858,8 @@
 
   - image: `postgres:17-alpine`
   - database: `game_center`
-  - user: `game_center`
-  - password: `game_center`
+  - user: `postgres`
+  - password: مقدار `POSTGRES_PASSWORD` در فایل `.env`
   - volume دائمی: `postgres-data`
   - پورت:
 
@@ -874,12 +874,13 @@
   این فایل نمونه متغیر محیطی دیتابیس را نشان می‌دهد:
 
   ```txt
-  DATABASE_URL=postgres://game_center:game_center@localhost:5432/game_center
+  PRIVATE_IP=10.0.0.4
+  DATABASE_URL=postgres://postgres:YOUR_URL_ENCODED_PASSWORD@10.0.0.4:5432/game_center
   ```
 
   نکته عملی:
 
-  برای اتصال از سیستم میزبان با compose فعلی، پورت درست `5433` است. برای اجرای app داخل Docker، مقدار درست همان host داخلی `db:5432` است که در `compose.yaml` تنظیم شده.
+  مقدار واقعی `DATABASE_URL` و `POSTGRES_PASSWORD` در فایل `.env` نگه‌داری می‌شود و در git commit نمی‌شود.
 
   ## .dockerignore
 
@@ -1017,11 +1018,11 @@
   برای pgAdmin از این مقادیر استفاده شود:
 
   ```txt
-  Host name/address: localhost
-  Port: 5433
+  Host name/address: 10.0.0.4
+  Port: 5432
   Maintenance database: game_center
-  Username: game_center
-  Password: game_center
+  Username: postgres
+  Password: مقدار `POSTGRES_PASSWORD` در فایل `.env`
   ```
 
   اگر به جای `5433` از `5432` استفاده شود، ممکن است به PostgreSQL دیگری روی سیستم وصل شوید و خطای password authentication بگیرید.
@@ -1059,7 +1060,7 @@
   خروجی:
 
   ```txt
-  game_center | game_center
+  game_center | postgres
   ```
 
   ثبت امتیاز Memory تست شد:

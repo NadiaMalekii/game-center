@@ -6,7 +6,7 @@ services:
     image: game-center:local
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://game_center:game%40center%23123@10.0.0.4:5432/game_center
+      DATABASE_URL: ${DATABASE_URL}
     ports:
       - "8094:3000"
     depends_on:
@@ -19,8 +19,8 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_DB: game_center
-      POSTGRES_USER: game_center
-      POSTGRES_PASSWORD: game@center#123
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
