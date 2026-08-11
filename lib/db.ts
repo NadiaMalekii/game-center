@@ -5,10 +5,28 @@ const globalForPg = globalThis as typeof globalThis & {
 };
 
 export function getPool() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL is required for PostgreSQL score storage.");
+  const databaseUrl = process.env.DATABASE_URL;
+  const postgresHost = process.env.POSTGRES_HOST;
+  const postgresPort = process.env.POSTGRES_PORT;
+  const postgresDb = process.env.POSTGRES_DB;
+  const postgresUser = process.env.POSTGRES_USER;
+  const postgresPassword = process.env.POSTGRES_PASSWORD;
+
+  if (!databaseUrl && (!postgresHost || !postgresPort || !postgresDb || !postgresUser || !postgresPassword)) {
+    throw new Error(
+      "PostgreSQL configuration is required: set DATABASE_URL or POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, and POSTGRES_PASSWORD.",
+    );
   }
 
-  globalForPg.pgPool ??= new Pool({ connectionString: process.env.DATABASE_URL });
+  globalForPg.pgPool ??= databaseUrl
+    ? new Pool({ connectionString: databaseUrl })
+    : new Pool({
+        host: postgresHost,
+        port: Number(postgresPort),
+        database: postgresDb,
+        user: postgresUser,
+        password: postgresPassword,
+      });
+
   return globalForPg.pgPool;
 }
