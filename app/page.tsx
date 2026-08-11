@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { Brain, ChevronRight, Gamepad2, Sparkles } from "lucide-react";
+import { Box, Brain, ChevronRight, Gamepad2, Keyboard, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +28,22 @@ const games = [
     icon: Brain,
     accent: "from-fuchsia-400/25 to-sky-400/10",
     stats: "Fast mobile card play",
+  },
+  {
+    title: "Hangman",
+    description: "Reveal the word one letter at a time before the drawing is complete.",
+    href: "/hangman",
+    icon: Keyboard,
+    accent: "from-amber-400/25 to-orange-400/10",
+    stats: "Physical + on-screen keyboard",
+  },
+  {
+    title: "Sokoban",
+    description: "Push every box onto its target without trapping yourself in a corner.",
+    href: "/sokoban",
+    icon: Box,
+    accent: "from-cyan-400/25 to-blue-400/10",
+    stats: "Arrow keys + touch controls",
   },
 ];
 
