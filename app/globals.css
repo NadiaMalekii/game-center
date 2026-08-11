@@ -60,3 +60,21 @@ button,
 input {
   font: inherit;
 }
+
+@keyframes hangman-draw {
+  from {
+    stroke-dashoffset: 1;
+    opacity: 0.2;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.hangman-drawing-part {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: hangman-draw 360ms ease-out forwards;
+}
