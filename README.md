@@ -40,19 +40,21 @@ A modern, mobile-first game center built with **Next.js**. Play classic browser 
 | lucide-react | Icons |
 | shadcn-style UI | Button, Card, Input components |
 
-## Project Structure
+# Project Structure
+
+```
 game-center/
 ├── src/
-│ ├── app/
-│ │ ├── api/
-│ │ ├── games/
-│ │ └── leaderboard/
-│ ├── components/
-│ │ ├── games/
-│ │ └── ui/
-│ ├── lib/
-│ ├── hooks/
-│ └── types/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── games/
+│   │   └── leaderboard/
+│   ├── components/
+│   │   ├── games/
+│   │   └── ui/
+│   ├── lib/
+│   ├── hooks/
+│   └── types/
 ├── public/
 ├── prisma/
 ├── docker-compose.yml
@@ -61,6 +63,9 @@ game-center/
 ├── package.json
 ├── tsconfig.json
 └── README.md
+```
+
+# Getting Started
 
 ## Getting Started
 
