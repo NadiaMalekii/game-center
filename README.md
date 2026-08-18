@@ -1,9 +1,3 @@
-# Portfolio Projects
-
-Welcome to my project portfolio. Below are two complete projects with full documentation.
-
----
-
 ## Table of Contents
 
 1. [Game Center](#game-center) - Browser Game Center with Next.js
