@@ -1,9 +1,3 @@
-
----
-
-### 3. Game Center
-
-```markdown
 # Game Center
 
 <p align="center">
@@ -56,3 +50,4 @@ Play classic browser games, save your scores, and compete on leaderboards.
 | shadcn-style UI     | Button, Card, Input components |
 
 ---
+
