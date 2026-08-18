@@ -1,10 +1,3 @@
-## Table of Contents
-
-1. [Game Center](#game-center) - Browser Game Center with Next.js
-2. [Shortener](#shortener) - URL Shortener with .NET Orleans
-
----
-
 # Game Center
 
 <p align="center">
